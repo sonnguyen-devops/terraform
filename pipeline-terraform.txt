@@ -5,6 +5,25 @@ use this command for adding new resource
 sed -i '/"/! s/]/{storage_account_id=$var1,name_container=$var2},\n]/' ./azure/non-prod/$env/demo/storage-account/terragrunt.hcl
 use this command for delete a resource
 sed -i '/{storage_account_id=$var1,name_container=$var2}/d' ./azure/non-prod/$env/demo/storage-account/terragrunt.hcl
+use this command to add a new record to cloud flare
+sed -i '/"/! s/]/  {\ 
+     name     = "hmail" \
+     value    = "google.com" \
+     type     = "CNAME" \
+     ttl      = 1 \
+     priority = null \
+     proxied  = true \
+     tags     = null \
+     timeouts = null \
+     data     = null \
+   },\n]/' terragrunt.hcl
+
+use this command to delete a record 
+line=$(cat terragrunt.hcl | grep -n $name_record | cut -d ':' -f 1)
+start=$((line-1))
+end=$((line+9))
+sed -i "${start},${end}d" ./cloud-flare/non-prod/$env/demo/terragrunt.hcl
+
 step 3: az login
 Now I'm using son.n2 creadential, run file sh, save this file at Jenkin server
 /usr/local/login-az.sh
@@ -17,7 +36,9 @@ step 4: pre-commit source: run pre commit x2 because first time it will check an
 pre-commit run all-files
 pre-commit run all-files
 step 5: terragrunt apply 
-terragrunt apply --auto-approve --terragrunt-source "git::https://$token@github.com/Mcmtechnologies/DXP-Terraform.git?ref=storage-account" --terragrunt-config ./non-prod/$env/demo/storage-account/terragrunt.hcl
+token="value token"
+terragrunt apply --auto-approve --terragrunt-source "git::https://$token@github.com/Mcmtechnologies/DXP-Terraform.git?ref=storage-account" --terragrunt-config ./azure/non-prod/$env/demo/storage-account/terragrunt.hcl
+terragrunt apply --auto-approve --terrgrunt-config ./cloud-flare/non-prod/$env/demo/terragrunt.hcl
 step 6: commit and push code
 git add . || exit 0
 git config user.name mcmvn || exit 0
