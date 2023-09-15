@@ -1,0 +1,29 @@
+step 1: pull terragrunt source code
+git clone https://<token>@github.com/Mcmtechnologies/DXP-IAC.git
+step 2: sed command 
+use this command for adding new resource
+sed -i '/"/! s/]/{storage_account_id=$var1,name_container=$var2},\n]/' ./azure/non-prod/$env/demo/storage-account/terragrunt.hcl
+use this command for delete a resource
+sed -i '/{storage_account_id=$var1,name_container=$var2}/d' ./azure/non-prod/$env/demo/storage-account/terragrunt.hcl
+step 3: az login
+Now I'm using son.n2 creadential, run file sh, save this file at Jenkin server
+/usr/local/login-az.sh
+
+Example file for login-az.sh
+az_password=<password is here>
+az login -u son.n2@gothinkretail.onmicrosoft.com -p $az_password
+
+step 4: pre-commit source: run pre commit x2 because first time it will check and update format for terragrunt, second time is oke will appear
+pre-commit run all-files
+pre-commit run all-files
+step 5: terragrunt apply 
+terragrunt apply --auto-approve --terragrunt-source "git::https://$token@github.com/Mcmtechnologies/DXP-Terraform.git?ref=storage-account" --terragrunt-config ./non-prod/$env/demo/storage-account/terragrunt.hcl
+step 6: commit and push code
+git add . || exit 0
+git config user.name mcmvn || exit 0
+git config user.email mcmvn.technology@gmail.com || exit 0
+git commit -am "Update blob storage"
+git push origin main
+step 7: clean workspace
+step 8: azure cli logout
+az logout
